@@ -84,7 +84,7 @@ type SenderInfoData struct {
 	NtpTime int64
 	RtpTimestamp,
 	SenderPacketCnt,
-	SenderOctectCnt uint32
+	SenderOctetCnt uint32
 }
 
 type RecvReportData struct {
@@ -297,7 +297,7 @@ func (strm *SsrcStream) readRecvReport(report recvReport) {
 
 // fillSenderInfo fills in the senderInfo.
 func (strm *SsrcStream) fillSenderInfo(info senderInfo) {
-	info.setOctetCount(strm.SenderOctectCnt)
+	info.setOctetCount(strm.SenderOctetCnt)
 	info.setPacketCount(strm.SenderPacketCnt)
 	tm := time.Now().UnixNano()
 	sec, frac := toNtpStamp(tm)
@@ -624,7 +624,7 @@ func (strm *SsrcStream) readSenderInfo(info senderInfo) {
 	strm.NtpTime = fromNtp(seconds, fraction)
 	strm.RtpTimestamp = info.rtpTimeStamp()
 	strm.SenderPacketCnt = info.packetCount()
-	strm.SenderOctectCnt = info.octetCount()
+	strm.SenderOctetCnt = info.octetCount()
 }
 
 // goodBye marks this source as having sent a BYE control packet.

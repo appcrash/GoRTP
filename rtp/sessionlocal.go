@@ -377,7 +377,7 @@ func (rs *Session) rtcpSenderCheck(rp *CtrlPacket, offset int) (*SsrcStream, uin
 //
 func (rs *Session) sendDataCtrlEvent(code int, ssrc, index uint32) {
 	var ctrlEvArr [1]*CtrlEvent
-	ctrlEvArr[0] = newCrtlEvent(code, ssrc, index)
+	ctrlEvArr[0] = newCtrlEvent(code, ssrc, index)
 
 	if ctrlEvArr[0] != nil {
 		select {
@@ -563,7 +563,7 @@ const (
 
 // rtcpInterval helper function computes the next time when to send an RTCP packet.
 //
-// The algorithm is copied from RFC 2550, A.7 and a little bit adapted to Go. This includes some important comments :-) .
+// The algorithm is copied from RFC 3550, A.7 and a little bit adapted to Go. This includes some important comments :-) .
 //
 func rtcpInterval(members, senders int, rtcpBw, avrgSize float64, weSent, initial bool) (int64, int64) {
 
@@ -613,8 +613,8 @@ func rtcpInterval(members, senders int, rtcpBw, avrgSize float64, weSent, initia
 	return int64(t * 1e9), td
 }
 
-// newCrtlEvent is a little helper function to create and initialize a new control event.
-func newCrtlEvent(eventType int, ssrc, idx uint32) (ctrlEv *CtrlEvent) {
+// newCtrlEvent is a little helper function to create and initialize a new control event.
+func newCtrlEvent(eventType int, ssrc, idx uint32) (ctrlEv *CtrlEvent) {
 	ctrlEv = new(CtrlEvent)
 	ctrlEv.EventType = eventType
 	ctrlEv.Ssrc = ssrc

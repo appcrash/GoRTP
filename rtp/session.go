@@ -381,7 +381,7 @@ func (rs *Session) SsrcStreamInForIndex(streamIndex uint32) *SsrcStream {
 // are returned to the system. An application must not re-use a session.
 //
 func (rs *Session) SsrcStreamClose() {
-	rs.SsrcStreamOutForIndex(0)
+	rs.SsrcStreamCloseForIndex(0)
 }
 
 // SsrcStreamCloseForIndex sends a RTCP BYE to the stream at index index.
@@ -538,16 +538,16 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 				// So I preferred to discard such RTCP packets. --LS
 				rp.FreePacket()
 				return false
-				//ctrlEvArr = append(ctrlEvArr, newCrtlEvent(int(strIdx), str.Ssrc(), 0))
+				//ctrlEvArr = append(ctrlEvArr, newCtrlEvent(int(strIdx), str.Ssrc(), 0))
 			}
 
 			if !existing {
-				ctrlEvArr = append(ctrlEvArr, newCrtlEvent(NewStreamCtrl, str.Ssrc(), rs.streamInIndex-1))
+				ctrlEvArr = append(ctrlEvArr, newCtrlEvent(NewStreamCtrl, str.Ssrc(), rs.streamInIndex-1))
 			}
 			str.statistics.lastRtcpSrTime = str.statistics.lastRtcpPacketTime
 			str.readSenderInfo(rp.toSenderInfo(rtcpHeaderLength + rtcpSsrcLength + offset))
 
-			ctrlEvArr = append(ctrlEvArr, newCrtlEvent(RtcpSR, str.Ssrc(), strIdx))
+			ctrlEvArr = append(ctrlEvArr, newCtrlEvent(RtcpSR, str.Ssrc(), strIdx))
 
 			// Offset to first RR block: offset to SR + fixed Header length for SR + length of sender info
 			rrOffset := offset + rtcpHeaderLength + rtcpSsrcLength + senderInfoLen
@@ -558,7 +558,7 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 				// Process Receive Reports that match own output streams (SSRC).
 				if exists {
 					strOut.readRecvReport(rr)
-					ctrlEvArr = append(ctrlEvArr, newCrtlEvent(RtcpRR, rr.ssrc(), idx))
+					ctrlEvArr = append(ctrlEvArr, newCtrlEvent(RtcpRR, rr.ssrc(), idx))
 				}
 				rrOffset += reportBlockLen
 			}
@@ -578,11 +578,11 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 				// So I preferred to discard such RTCP packets. --LS
 				rp.FreePacket()
 				return false
-				//ctrlEvArr = append(ctrlEvArr, newCrtlEvent(int(strIdx), str.Ssrc(), 0))
+				//ctrlEvArr = append(ctrlEvArr, newCtrlEvent(int(strIdx), str.Ssrc(), 0))
 			}
 
 			if !existing {
-				ctrlEvArr = append(ctrlEvArr, newCrtlEvent(NewStreamCtrl, str.Ssrc(), rs.streamInIndex-1))
+				ctrlEvArr = append(ctrlEvArr, newCtrlEvent(NewStreamCtrl, str.Ssrc(), rs.streamInIndex-1))
 			}
 
 			rrCnt := rp.Count(offset)
@@ -594,7 +594,7 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 				// Process Receive Reports that match own output streams (SSRC)
 				if exists {
 					strOut.readRecvReport(rr)
-					ctrlEvArr = append(ctrlEvArr, newCrtlEvent(RtcpRR, rr.ssrc(), idx))
+					ctrlEvArr = append(ctrlEvArr, newCtrlEvent(RtcpRR, rr.ssrc(), idx))
 				}
 				rrOffset += reportBlockLen
 			}
@@ -619,7 +619,7 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 				if !ok {
 					break
 				}
-				ctrlEvArr = append(ctrlEvArr, newCrtlEvent(RtcpSdes, chunk.ssrc(), idx))
+				ctrlEvArr = append(ctrlEvArr, newCtrlEvent(RtcpSdes, chunk.ssrc(), idx))
 				sdesChunkOffset += chunkLen
 				sdesPktLen -= chunkLen
 			}
@@ -638,7 +638,7 @@ func (rs *Session) OnRecvCtrl(rp *CtrlPacket) bool {
 			if byePkt != nil {
 				// Send BYE control event only for known input streams.
 				if st, idx, ok := rs.lookupSsrcMapIn(byePkt.ssrc(0)); ok {
-					ctrlEv := newCrtlEvent(RtcpBye, byePkt.ssrc(0), idx)
+					ctrlEv := newCtrlEvent(RtcpBye, byePkt.ssrc(0), idx)
 					ctrlEv.Reason = byePkt.getReason(byeCnt)
 					ctrlEvArr = append(ctrlEvArr, ctrlEv)
 					st.streamStatus = isClosing
@@ -730,7 +730,7 @@ func (rs *Session) WriteData(rp *DataPacket) (n int, err error) {
 		return 0, nil
 	}
 	strOut.SenderPacketCnt++
-	strOut.SenderOctectCnt += uint32(len(rp.Payload()))
+	strOut.SenderOctetCnt += uint32(len(rp.Payload()))
 
 	strOut.streamMutex.Lock()
 	if !strOut.sender && rs.rtcpCtrlChan != nil {
