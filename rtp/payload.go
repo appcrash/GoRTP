@@ -69,7 +69,7 @@ const (
 	Video = 2
 )
 
-// PayloadFormat holds RTP payload formats.
+// AVProfile holds RTP payload profiles.
 //
 // The global variable PayloadFormatMap holds the well known payload formats
 // (see http://www.iana.org/assignments/rtp-parameters).
@@ -81,60 +81,69 @@ const (
 // format number. For dynamic payload formats applications shall use payload
 // format numbers between 96 and 127 only.
 //
-// For example if a dynamic format uses the payload number 98 then the application
-// may perform:
-//
-//     PayloadFormatMap[98] = &net.rtp.PayloadFormat{98, net.rtp.Audio, 41000, 2, "CD"}
-//
-type PayloadFormat struct {
-	TypeNumber,
+// dynamic profiles have TypeNumber 255, which is reset in stream's SetProfile method
+
+type AVProfile struct {
+	TypeNumber uint8
+
 	MediaType,
 	ClockRate,
 	Channels int
-	Name string
-}
-type payloadMap map[int]*PayloadFormat
 
-var PayloadFormatMap = make(payloadMap, 25)
+	MimeType,
+	ProfileName string
+}
+type profileDbType map[string]*AVProfile
+type profileIndexType map[uint8]*AVProfile
+
+var avProfileDb = make(profileDbType)       // query by mime or profile name
+var avProfileIndex = make(profileIndexType) // query by type number, only for non-dynamic profiles
+
+func (profile *AVProfile) Name() string {
+	if profile.ProfileName != "" {
+		return profile.ProfileName
+	} else {
+		return profile.MimeType
+	}
+}
 
 func init() {
-	PayloadFormatMap[0] = &PayloadFormat{0, Audio, 8000, 1, "PCMU"}
-	// 1         Reserved
-	// 2         Reserved
-	PayloadFormatMap[3] = &PayloadFormat{3, Audio, 8000, 1, "GSM"}
-	PayloadFormatMap[4] = &PayloadFormat{4, Audio, 8000, 1, "G723"}
-	PayloadFormatMap[5] = &PayloadFormat{5, Audio, 8000, 1, "DVI4"}
-	PayloadFormatMap[6] = &PayloadFormat{6, Audio, 16000, 1, "DVI4"}
-	PayloadFormatMap[7] = &PayloadFormat{7, Audio, 8000, 1, "LPC"}
-	PayloadFormatMap[8] = &PayloadFormat{8, Audio, 8000, 1, "PCMA"}
-	PayloadFormatMap[9] = &PayloadFormat{9, Audio, 8000, 1, "G722"}
-	PayloadFormatMap[10] = &PayloadFormat{10, Audio, 44100, 2, "L16"}
-	PayloadFormatMap[11] = &PayloadFormat{11, Audio, 44100, 1, "L16"}
-	PayloadFormatMap[12] = &PayloadFormat{12, Audio, 8000, 1, "QCELP"}
-	PayloadFormatMap[13] = &PayloadFormat{13, Audio, 8000, 1, "CN"}
-	PayloadFormatMap[14] = &PayloadFormat{14, Audio, 90000, 0, "MPA"}
-	PayloadFormatMap[15] = &PayloadFormat{15, Audio, 8000, 1, "G728"}
-	PayloadFormatMap[16] = &PayloadFormat{16, Audio, 11025, 1, "DVI4"}
-	PayloadFormatMap[17] = &PayloadFormat{17, Audio, 22050, 1, "DVI4"}
-	PayloadFormatMap[18] = &PayloadFormat{18, Audio, 8000, 1, "G729"}
-	// 19        Reserved        A
-	// 20        Unassigned      A
-	// 21        Unassigned      A
-	// 22        Unassigned      A
-	// 23        Unassigned      A
-	// 24        Unassigned      V
-	PayloadFormatMap[25] = &PayloadFormat{25, Video, 90000, 0, "CelB"}
-	PayloadFormatMap[26] = &PayloadFormat{26, Video, 90000, 0, "JPEG"}
-	// 27        Unassigned      V
-	PayloadFormatMap[28] = &PayloadFormat{28, Video, 90000, 0, "nv"}
-	// 29        Unassigned      V
-	// 30        Unassigned      V
-	PayloadFormatMap[31] = &PayloadFormat{31, Video, 90000, 0, "H261"}
-	PayloadFormatMap[32] = &PayloadFormat{32, Video, 90000, 0, "MPV"}
-	PayloadFormatMap[33] = &PayloadFormat{33, Audio | Video, 90000, 0, "MP2T"}
-	PayloadFormatMap[34] = &PayloadFormat{34, Video, 90000, 0, "H263"}
-	// 35-71     Unassigned      ?
-	// 72-76     Reserved for RTCP conflict avoidance
-	// 77-95     Unassigned      ?
-	// 96-127    dynamic         ?
+	profiles := []*AVProfile{
+		{0, Audio, 8000, 1, "PCMU", ""},
+		{3, Audio, 8000, 1, "GSM", ""},
+		{4, Audio, 8000, 1, "G723", ""},
+		{5, Audio, 8000, 1, "DVI4", ""},
+		{7, Audio, 8000, 1, "LPC", ""},
+		{8, Audio, 8000, 1, "PCMA", ""},
+		{9, Audio, 8000, 1, "G722", ""},
+		{10, Audio, 44100, 2, "L16", "L16-stereo"},
+		{11, Audio, 44100, 1, "L16", "L16-mono"},
+		{12, Audio, 8000, 1, "QCELP", ""},
+		{13, Audio, 8000, 1, "CN", ""},
+		{14, Audio, 90000, 0, "MPA", ""},
+		{15, Audio, 8000, 1, "G728", ""},
+		{16, Audio, 11025, 1, "DVI4", "DVI4-11K"},
+		{17, Audio, 22050, 1, "DVI4", "DVI4-22K"},
+		{18, Audio, 8000, 1, "G729", ""},
+		{25, Video, 90000, 0, "CelB", ""},
+		{26, Video, 90000, 0, "JPEG", ""},
+		{28, Video, 90000, 0, "nv", ""},
+		{31, Video, 90000, 0, "H261", ""},
+		{32, Video, 90000, 0, "MPV", ""},
+		{33, Audio | Video, 90000, 0, "MP2T", ""},
+		{34, Video, 90000, 0, "H263", ""},
+
+		// dynamic profiles
+		{255, Audio, 8000, 1, "AMR", ""},
+		{255, Audio, 16000, 1, "AMR-WB", ""},
+	}
+
+	for _, profile := range profiles {
+		name := profile.Name()
+		avProfileDb[name] = profile
+		if profile.TypeNumber >= 0 {
+			avProfileIndex[profile.TypeNumber] = profile
+		}
+
+	}
 }

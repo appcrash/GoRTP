@@ -115,10 +115,11 @@ type SsrcStream struct {
 	initialTime  int64
 	initialStamp uint32
 
-	sequenceNumber uint16
-	ssrc           uint32
-	payloadType    byte
-	sender         bool // true if this source (ouput or input) was identified as active sender
+	sequenceNumber    uint16
+	ssrc              uint32
+	payloadTypeNumber byte
+	profile           *AVProfile
+	sender            bool // true if this source (ouput or input) was identified as active sender
 
 	// For input streams: true if RTP packet seen after last RR
 	dataAfterLastReport bool
@@ -144,29 +145,28 @@ func (strm *SsrcStream) SequenceNo() uint16 {
 	return strm.sequenceNumber
 }
 
-// SetPayloadType sets the payload type of this stream.
-//
-// According to RFC 3550 an application may change the payload type during a
-// the lifetime of a RTP stream. Refer to rtp.PayloadFormat type.
-//
-// The method returns false and does not set the payload type if the payload format
-// is not available in rtp.PayloadFormatMap. An application must either use a known
-// format or set the new payload format at the correct index before it sets the
-// payload type of the stream.
-//
-//  pt - the payload type number.
-//
-func (strm *SsrcStream) SetPayloadType(pt byte) (ok bool) {
-	if _, ok = PayloadFormatMap[int(pt)]; !ok {
-		return
-	}
-	strm.payloadType = pt
-	return
+// PayloadTypeNumber returns the payload type of this stream.
+func (strm *SsrcStream) PayloadTypeNumber() byte {
+	return strm.payloadTypeNumber
 }
 
-// PayloadType returns the payload type of this stream.
-func (strm *SsrcStream) PayloadType() byte {
-	return strm.payloadType
+// SetProfile if profileName is not dynamic, dynamicTypeNumber is ignored.
+// return true if profile is supported
+func (strm *SsrcStream) SetProfile(profileName string, dynamicTypeNumber uint8) bool {
+	var profile *AVProfile
+	var ok bool
+	if profile, ok = avProfileDb[profileName]; !ok {
+		return false
+	}
+	profileCopy := *profile
+	if profile.TypeNumber < 96 {
+		strm.payloadTypeNumber = profile.TypeNumber
+	} else {
+		strm.payloadTypeNumber = dynamicTypeNumber
+	}
+	strm.profile = &profileCopy
+	strm.profile.TypeNumber = strm.payloadTypeNumber
+	return true
 }
 
 // StreamType returns stream's type, either input stream or otput stream.
@@ -196,7 +196,7 @@ func newSsrcStreamOut(own *Address, ssrc uint32, sequenceNo uint16) (so *SsrcStr
 	so.DataPort = own.DataPort
 	so.CtrlPort = own.CtrlPort
 	so.Zone = own.Zone
-	so.payloadType = 0xff // initialize to illegal payload type
+	so.payloadTypeNumber = 0xff // initialize to illegal payload type
 	so.initialTime = time.Now().UnixNano()
 	so.newInitialTimestamp()
 	so.SdesItems = make(SdesItemMap, 2)
@@ -222,7 +222,7 @@ func newSsrcStreamOut(own *Address, ssrc uint32, sequenceNo uint16) (so *SsrcStr
 func (strm *SsrcStream) newDataPacket(stamp uint32) (rp *DataPacket) {
 	rp = newDataPacket()
 	rp.SetSsrc(strm.ssrc)
-	rp.SetPayloadType(strm.payloadType)
+	rp.SetPayloadType(strm.payloadTypeNumber)
 	rp.SetTimestamp(stamp + strm.initialStamp)
 	rp.SetSequence(strm.sequenceNumber)
 	strm.sequenceNumber++
@@ -304,11 +304,15 @@ func (strm *SsrcStream) fillSenderInfo(info senderInfo) {
 	info.setNtpTimeStamp(sec, frac)
 
 	tm1 := uint32(tm-strm.initialTime) / 1e6 // time since session creation in ms
-	if v, ok := PayloadFormatMap[int(strm.payloadType)]; ok {
-		tm1 *= uint32(v.ClockRate / 1e3) // compute number of samples
-		tm1 += strm.initialStamp
-		info.setRtpTimeStamp(tm1)
-	}
+	//if v, ok := PayloadFormatMap[int(strm.payloadTypeNumber)]; ok {
+	//	tm1 *= uint32(v.ClockRate / 1e3) // compute number of samples
+	//	tm1 += strm.initialStamp
+	//	info.setRtpTimeStamp(tm1)
+	//}
+	p := strm.profile
+	tm1 *= uint32(p.ClockRate / 1e3) // compute number of sampels
+	tm1 += strm.initialStamp
+	info.setRtpTimeStamp(tm1)
 }
 
 // makeSdesChunk creates an SDES chunk at the current inUse position and returns offset that points after the chunk.
@@ -507,9 +511,9 @@ func (strm *SsrcStream) recordReceptionData(rp *DataPacket, rs *Session, recvTim
 		strm.streamMutex.Unlock()
 
 		// compute the interarrival jitter estimation.
-		pt := int(rp.PayloadType())
+		clockRate := strm.profile.ClockRate
 		// compute lastPacketTime to ms and clockrate as kHz
-		arrival := uint32(strm.statistics.lastPacketTime / 1e6 * int64(PayloadFormatMap[pt].ClockRate/1e3))
+		arrival := uint32(strm.statistics.lastPacketTime / 1e6 * int64(clockRate/1e3))
 		transitTime := arrival - rp.Timestamp()
 		if strm.statistics.lastPacketTransitTime != 0 {
 			delta := int32(transitTime - strm.statistics.lastPacketTransitTime)

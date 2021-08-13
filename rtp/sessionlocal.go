@@ -526,7 +526,9 @@ func (rs *Session) replaceStream(oldOut *SsrcStream) (newOut *SsrcStream) {
 	for itemType, itemTxt := range oldOut.SdesItems {
 		newOut.SetSdesItem(itemType, itemTxt)
 	}
-	newOut.SetPayloadType(oldOut.PayloadType())
+	//newOut.SetPayloadType(oldOut.PayloadTypeNumber())
+	profile := oldOut.profile
+	newOut.SetProfile(profile.Name(),profile.TypeNumber)
 	newOut.sender = oldOut.sender
 
 	// Now lock and re-shuffle the streams

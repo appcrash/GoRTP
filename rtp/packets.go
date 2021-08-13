@@ -446,8 +446,12 @@ func (rp *DataPacket) IsValid() bool {
 	if (rp.buffer[0] & version2Bit) != version2Bit {
 		return false
 	}
-	if PayloadFormatMap[int(rp.PayloadType())] == nil {
-		return false
+	pt := rp.PayloadType()
+	if pt < 96 {
+		// for non-dynamic profile, check it
+		if _,ok := avProfileIndex[pt]; !ok {
+			return false
+		}
 	}
 	return true
 }

@@ -239,12 +239,12 @@ func (rs *Session) StartSession() (err error) {
 	// compute first transmission interval
 	if rs.RtcpSessionBandwidth == 0.0 { // If not set by application try to guess a value
 		for _, str := range rs.streamsOut {
-			format := PayloadFormatMap[int(str.PayloadType())]
-			if format == nil {
-				rs.RtcpSessionBandwidth += 64000. / 20.0 // some standard: 5% of a 64000 bit connection
-			}
+			clockRate := str.profile.ClockRate
+			//if format == nil {
+			//	rs.RtcpSessionBandwidth += 64000. / 20.0 // some standard: 5% of a 64000 bit connection
+			//}
 			// Assumption: fixed codec used, 8 byte per sample, one channel
-			rs.RtcpSessionBandwidth += float64(format.ClockRate) * 8.0 / 20.
+			rs.RtcpSessionBandwidth += float64(clockRate) * 8.0 / 20.
 		}
 	}
 	rs.avrgPacketLength = float64(len(rs.streamsOut)*senderInfoLen + reportBlockLen + 20) // 28 for SDES
