@@ -21,8 +21,8 @@ package main
 import (
 	//    "encoding/hex"
 	"fmt"
-	"net"
 	"github.com/appcrash/GoRTP/rtp"
+	"net"
 	"time"
 )
 
@@ -232,7 +232,7 @@ func fullDuplex() {
 	// streams of the same media.
 	//
 	strLocalIdx, _ := rsLocal.NewSsrcStreamOut(&rtp.Address{local.IP, localPort, localPort + 1, localZone}, 1020304, 4711)
-	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetPayloadType(0)
+	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetProfile("PCMU",0)
 
 	// Create the same set for a "remote" peer and use the "local" as its remote peer
 	tpRemote, _ := rtp.NewTransportUDP(remote, remotePort, remoteZone)
@@ -240,7 +240,7 @@ func fullDuplex() {
 	rsRemote.AddRemote(&rtp.Address{local.IP, localPort, localPort + 1, localZone})
 
 	strRemoteIdx, _ := rsRemote.NewSsrcStreamOut(&rtp.Address{remote.IP, remotePort, remotePort + 1, remoteZone}, 4030201, 815)
-	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetPayloadType(0)
+	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetProfile("PCMU",0)
 
 	go receivePacketLocal()
 	go receivePacketRemote()
@@ -292,11 +292,11 @@ func fullDuplexTwoStreams() {
 	// streams of the same media.
 	//
 	strLocalIdx, _ := rsLocal.NewSsrcStreamOut(&rtp.Address{local.IP, localPort, localPort + 1, localZone}, 1020304, 4711)
-	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetPayloadType(0)
+	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetProfile("PCMU",0)
 
 	// create a second output stream
 	strLocalIdx, _ = rsLocal.NewSsrcStreamOut(&rtp.Address{local.IP, localPort, localPort + 1, localZone}, 11223344, 1234)
-	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetPayloadType(0)
+	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetProfile("PCMU",0)
 
 	// Create the same set for a "remote" peer and use the "local" as its remote peer. Remote peer has one output stream only.
 	tpRemote, _ := rtp.NewTransportUDP(remote, remotePort, remoteZone)
@@ -304,7 +304,7 @@ func fullDuplexTwoStreams() {
 	rsRemote.AddRemote(&rtp.Address{local.IP, localPort, localPort + 1, localZone})
 
 	strRemoteIdx, _ := rsRemote.NewSsrcStreamOut(&rtp.Address{remote.IP, remotePort, remotePort + 1, remoteZone}, 4030201, 815)
-	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetPayloadType(0)
+	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetProfile("PCMU",0)
 
 	go receivePacketLocal()
 	go receivePacketRemote()
@@ -357,7 +357,7 @@ func simpleRtp() {
 	// streams of the same media.
 	//
 	strLocalIdx, _ := rsLocal.NewSsrcStreamOut(&rtp.Address{local.IP, localPort, localPort + 1, localZone}, 1020304, 4711)
-	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetPayloadType(0)
+	rsLocal.SsrcStreamOutForIndex(strLocalIdx).SetProfile("PCMU",0)
 
 	// Create the same set for a "remote" peer and use the "local" as its remote peer.
 	tpRemote, _ := rtp.NewTransportUDP(remote, remotePort, remoteZone)
@@ -365,7 +365,7 @@ func simpleRtp() {
 	rsRemote.AddRemote(&rtp.Address{local.IP, localPort, localPort + 1, localZone})
 
 	strRemoteIdx, _ := rsRemote.NewSsrcStreamOut(&rtp.Address{remote.IP, remotePort, remotePort + 1, remoteZone}, 4030201, 815)
-	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetPayloadType(0)
+	rsRemote.SsrcStreamOutForIndex(strRemoteIdx).SetProfile("PCMU",0)
 
 	go receivePacketLocal()
 	go receivePacketRemote()

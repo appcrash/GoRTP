@@ -240,10 +240,8 @@ func (rs *Session) StartSession() (err error) {
 	if rs.RtcpSessionBandwidth == 0.0 { // If not set by application try to guess a value
 		for _, str := range rs.streamsOut {
 			clockRate := str.profile.ClockRate
-			//if format == nil {
-			//	rs.RtcpSessionBandwidth += 64000. / 20.0 // some standard: 5% of a 64000 bit connection
-			//}
 			// Assumption: fixed codec used, 8 byte per sample, one channel
+			// rtcp use 5% bandwidth
 			rs.RtcpSessionBandwidth += float64(clockRate) * 8.0 / 20.
 		}
 	}

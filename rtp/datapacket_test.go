@@ -166,7 +166,7 @@ func newTestDataPacket() *DataPacket {
 	// streams of the same media.
 	//
 	strIdx, _ := rsLocal.NewSsrcStreamOut(&Address{local.IP, port, port + 1, localZone}, 0x01020304, 0x4711)
-	rsLocal.SsrcStreamOutForIndex(strIdx).SetPayloadType(3)
+	rsLocal.SsrcStreamOutForIndex(strIdx).SetProfile("GSM",3)
 
 	// Create a RTP packet suitable for standard stream (index 0) with a payload length of 160 bytes
 	// The method initializes the RTP packet with SSRC, sequence number, and RTP version number.

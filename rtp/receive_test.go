@@ -40,7 +40,7 @@ func initSessions() {
 	//
 	strIdx, _ := rsRecv.NewSsrcStreamOut(&Address{recvAddr.IP, recvPort, recvPort + 1, localZone}, 0x01020304, 0x4711)
 	rsRecv.SsrcStreamOutForIndex(strIdx).SetSdesItem(SdesCname, "AAAAAA")
-	rsRecv.SsrcStreamOutForIndex(strIdx).SetPayloadType(0)
+	rsRecv.SsrcStreamOutForIndex(strIdx).SetProfile("PCMU",0)
 	rsRecv.rtcpServiceActive = true // to simulate an active RTCP service
 
 	tpSender, _ := NewTransportUDP(senderAddr, senderPort, remoteZone)
@@ -82,7 +82,7 @@ func rtpReceive(t *testing.T) {
 	seqNum := uint16(maxDropout - 1)
 	strIdx, _ := rsSender.NewSsrcStreamOut(&Address{senderAddr.IP, senderPort, senderPort + 1, remoteZone}, 0x04030201, seqNum)
 	strOut := rsSender.SsrcStreamOutForIndex(strIdx)
-	strOut.SetPayloadType(0)
+	strOut.SetProfile("PCMU",0)
 
 	// Test the SDES management stuff
 	strOut.SetSdesItem(SdesCname, "AAAAAA")
@@ -317,7 +317,7 @@ func rtpReceive(t *testing.T) {
 	seqNum = uint16(maxDropout)
 	strIdx, _ = rsSender.NewSsrcStreamOut(&Address{senderAddr.IP, senderPort, senderPort + 1, remoteZone}, 0x04030201, seqNum)
 	strOut = rsSender.SsrcStreamOutForIndex(strIdx)
-	strOut.SetPayloadType(0)
+	strOut.SetProfile("PCMU",0)
 
 	rpSender = newSenderPacket(160)
 	rsRecv.OnRecvData(rpSender)
@@ -403,7 +403,7 @@ func rtpReceive(t *testing.T) {
 	seqNum = uint16(seqNumMod - maxMisorder - 2)
 	strIdx, _ = rsSender.NewSsrcStreamOut(&Address{senderAddr.IP, senderPort, senderPort + 1, remoteZone}, 0x04030201, seqNum)
 	strOut = rsSender.SsrcStreamOutForIndex(strIdx)
-	strOut.SetPayloadType(0)
+	strOut.SetProfile("PCMU",0)
 
 	rpSender = newSenderPacket(160)
 	rsRecv.OnRecvData(rpSender)

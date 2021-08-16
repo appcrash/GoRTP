@@ -509,7 +509,7 @@ func (rs *Session) processSdesChunk(chunk sdesChunk, rp *CtrlPacket) (int, uint3
 
 // replaceStream creates a new output stream, initializes it from the old output stream and replaces the old output stream.
 //
-// The old output stream will then become an input streamm - this handling is called if we have a conflict during
+// The old output stream will then become an input stream - this handling is called if we have a conflict during
 // collision, loop detection (see algorithm in chap 8.2, RFC 3550).
 //
 func (rs *Session) replaceStream(oldOut *SsrcStream) (newOut *SsrcStream) {

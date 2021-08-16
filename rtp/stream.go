@@ -510,9 +510,12 @@ func (strm *SsrcStream) recordReceptionData(rp *DataPacket, rs *Session, recvTim
 		strm.dataAfterLastReport = true
 		strm.streamMutex.Unlock()
 
-		// compute the interarrival jitter estimation.
-		clockRate := strm.profile.ClockRate
-		// compute lastPacketTime to ms and clockrate as kHz
+		// compute the inter-arrival jitter estimation.
+		clockRate := 8000	// default clock rate if no profile is set
+		if strm.profile != nil {
+			clockRate = strm.profile.ClockRate
+		}
+		// compute lastPacketTime to ms and clock rate as kHz
 		arrival := uint32(strm.statistics.lastPacketTime / 1e6 * int64(clockRate/1e3))
 		transitTime := arrival - rp.Timestamp()
 		if strm.statistics.lastPacketTransitTime != 0 {
