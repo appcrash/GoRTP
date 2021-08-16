@@ -19,7 +19,7 @@ jobs:
         run: go build -o main rtpmain/rtpmain.go && ./main
 
       - name: Coverage Test
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic 
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic  ./rtp
 
       - uses: codecov/codecov-action@v1.5.2
         with:

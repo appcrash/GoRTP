@@ -1,3 +1,6 @@
+[![Golang CI](https://github.com/appcrash/GoRTP/actions/workflows/golang.yml/badge.svg)](https://github.com/appcrash/GoRTP/actions/workflows/golang.yml)
+
+
 # RTP/RTCP stack for Go
 
 This Go package implements a RTP/RTCP stack for Go. The package is a
