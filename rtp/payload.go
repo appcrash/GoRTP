@@ -137,6 +137,7 @@ func init() {
 		{255, Audio, 8000, 1, "AMR", ""},
 		{255, Audio, 16000, 1, "AMR-WB", ""},
 		{255, Audio, 16000, 1, "TELEPHONE-EVENT", ""},
+		{255, Video, 90000, 0, "H264", ""},
 	}
 
 	for _, profile := range profiles {
