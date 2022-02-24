@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultBufferSize  = 1200
+	defaultBufferSize  = 12000
 	freeListLengthRtp  = 10
 	freeListLengthRtcp = 5
 	rtpHeaderLength    = 12
@@ -449,7 +449,7 @@ func (rp *DataPacket) IsValid() bool {
 	pt := rp.PayloadType()
 	if pt < 96 {
 		// for non-dynamic profile, check it
-		if _,ok := avProfileIndex[pt]; !ok {
+		if _, ok := avProfileIndex[pt]; !ok {
 			return false
 		}
 	}
