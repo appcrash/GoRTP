@@ -487,12 +487,9 @@ func (rs *Session) OnRecvData(rp *DataPacket) bool {
 			return false
 		}
 	}
-	select {
-	case rs.dataReceiveChan <- rp: // forwarded packet, that's all folks
-	default:
-		rp.FreePacket() // either channel full or not created - free packet
-	}
-
+	
+	rs.dataReceiveChan <- rp
+	
 	return true
 }
 
