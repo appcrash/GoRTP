@@ -136,6 +136,7 @@ func init() {
 		// dynamic profiles
 		{255, Audio, 8000, 1, "AMR", ""},
 		{255, Audio, 16000, 1, "AMR-WB", ""},
+		{255, Audio, 24400, 1, "EVS", ""},
 		{255, Audio, 16000, 1, "TELEPHONE-EVENT", ""},
 		{255, Video, 90000, 0, "H264", ""},
 	}
